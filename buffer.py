@@ -9,17 +9,17 @@ import sys
 import numpy as np
 
 
-#def reverse(x): # reverse the bit order in a byte
-#  x = ((x & 0xF0) >> 4) | ((x & 0x0F) << 4)
-#  x = ((x & 0xCC) >> 2) | ((x & 0x33) << 2)
-#  x = ((x & 0xAA) >> 1) | ((x & 0x55) << 1)
-#  return x  
+def reverse(x): # reverse the bit order in a byte
+  x = ((x & 0xF0) >> 4) | ((x & 0x0F) << 4)
+  x = ((x & 0xCC) >> 2) | ((x & 0x33) << 2)
+  x = ((x & 0xAA) >> 1) | ((x & 0x55) << 1)
+  return x  
 
-#def reverseBuffer(buf): # bit reverse each byte in buf
-#  b=bytearray()
-#  for ch in buf:
-#    b.append(reverse(ch)) 
-#  return b
+def reverseBuffer(buf): # bit reverse each byte in buf
+  b=bytearray()
+  for ch in buf:
+    b.append(reverse(ch)) 
+  return b
 
 class Buffer:
   #clockFrame = bytearray(b'\x55\x55\x27') # clock run-in and framing code
@@ -30,7 +30,7 @@ class Buffer:
     self.count = 0 # The packet count
   def addPacket(self,pkt):
     p=bytearray(Buffer.clockFrame)
-    p.extend(pkt)
+    p.extend(reverseBuffer(pkt))
     self.field[self.count]=p   
     self.count+=1
   def clearBuffer(self):

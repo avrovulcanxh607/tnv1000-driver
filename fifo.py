@@ -22,12 +22,12 @@ class Fifo:
     print ('Fifo created')
 
   def transmit(self): #/// Read from the odd or even field and send out teletext
-    GPIO.output(self.GPIO_MUX, GPIO.LOW) # Switch the MUX to the CPU
+    GPIO.output(self.GPIO_MUX, GPIO.HIGH) # Switch the MUX to the CPU
     self.spiram.setAddress(SPIRAM.READ,0)
-    GPIO.output(self.GPIO_MUX, GPIO.HIGH) # Switch the MUX to TTX out
+    GPIO.output(self.GPIO_MUX, GPIO.LOW) # Switch the MUX to TTX out
 
   def fill(self): # /// Set the control to the CPU. Ready to accept data into the fifo
-    GPIO.output(self.GPIO_MUX, GPIO.LOW) # Switch the MUX to the CPU
+    GPIO.output(self.GPIO_MUX, GPIO.HIGH) # Switch the MUX to the CPU
     self.spiram.setAddress(SPIRAM.WRITE,0)
     
   

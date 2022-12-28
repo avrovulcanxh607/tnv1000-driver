@@ -25,7 +25,9 @@ class SPIRAM: # spiram is used as a hardware buffer  to play out the teletext pa
   MODE_SEQUENTIAL = 0x40
   
   def __init__(self, bus, device):
-    GPIO.setup(24, GPIO.OUT) # GPIO_CSN. Chip select is bit banged because reasons
+    GPIO.setup(23, GPIO.OUT) # GPIO_CSN. Chip select is bit banged because reasons
+    GPIO.setup(25, GPIO.OUT)
+    GPIO.output(25, GPIO.HIGH)
     self.deselect() # disable the SPIRAM
     self.bus = bus
     self.device = device
@@ -42,11 +44,11 @@ class SPIRAM: # spiram is used as a hardware buffer  to play out the teletext pa
   # chip select
   def toggleCS(self): # /// Toggle the chip select prior to setting state
     # deselect and reselect the chip prior to setting it up
-    GPIO.output(24, GPIO.HIGH) # CSN
+    GPIO.output(23, GPIO.HIGH) # CSN
     time.sleep(0.000110)
-    GPIO.output(24, GPIO.LOW)
+    GPIO.output(23, GPIO.LOW)
   def deselect(self):
-    GPIO.output(24, GPIO.HIGH) # disable the spiram CSN
+    GPIO.output(23, GPIO.HIGH) # disable the spiram CSN
   # addressing
   # /// mode - A mode value SPIRAM_MODE_*
   # /// address - 0..32k assuming a 23K256 memory

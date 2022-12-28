@@ -11,10 +11,12 @@ import sys
 import numpy as np
 import time
 import RPi.GPIO as GPIO
+import smbus
 
 # Local libraries
-from saa7120 import saa7120
-from saa7113 import saa7113
+#from saa7120 import saa7120
+#from saa7113 import saa7113
+from tnv1000 import tnv1000
 from fifo import Fifo
 from buffer import Buffer
 
@@ -25,11 +27,14 @@ GPIO.setmode(GPIO.BCM)
 packetSize=42 # The input stream packet size. Does not include CRI and FC
 
 # Setup
-saa7120()
-saa7113()
+#saa7120()
+#saa7113()
+#tnv1000()
 
 # Objects
 fifo=Fifo()
+
+bus=smbus.SMBus(1)
 
 # buffer stuff
 head=0
@@ -44,13 +49,23 @@ if countdown<1:
   countdown=1
 
 GPIO_FLD=22 #define GPIO_FLD 3 -> Broadcom 22
-GPIO_CSN=24 #define GPIO_CSN 5 -> Broadcom 24
+GPIO_CSN=23 #define GPIO_CSN 5 -> Broadcom 24
 GPIO_MUX=25 #define GPIO_MUX 6 -> Broadcom 25
-GPIO_LED=4 #define GPIO_LED 7 -> Broadcom 4
+GPIO_LED=17 #define GPIO_LED 7 -> Broadcom 4
 
 # setup the I/O to VBIT
 GPIO.setup(GPIO_LED, GPIO.OUT)
 GPIO.setup(GPIO_FLD, GPIO.IN)
+GPIO.setup(18, GPIO.OUT)
+GPIO.setup(24, GPIO.OUT)
+
+GPIO.output(24, GPIO.LOW)
+tnv1000()
+GPIO.output(24, GPIO.HIGH)
+#def adv_int(self):
+#  print("ADV Interrupt")
+
+#GPIO.add_event_detect(27, GPIO.BOTH, callback=adv_int)
 
 # This is the interrupt routine that triggers on each field
 def fieldEdge(self):
@@ -59,12 +74,12 @@ def fieldEdge(self):
   global GPIO_FLD
   global tail
   global head
-  GPIO.output(GPIO_LED, GPIO.HIGH)
+  GPIO.output(GPIO_LED, GPIO.LOW)
   ##### Wait until the vbi has been transmitted #####
   time.sleep(0.0016) # Between Suspend while 1.6 ms
   # vbi is done. load the next field
   fifo.spiram.deselect()
-  GPIO.output(GPIO_LED, GPIO.LOW)
+  GPIO.output(GPIO_LED, GPIO.HIGH)
   # we are done with the buffer
   if head == tail: # Source buffer was not ready. We're going to need a faster Pi.
     print ('?') 
@@ -84,6 +99,12 @@ print ('vbit.py System started')
 try:
   # This thread will be used to read the input stream into a field buffer
   while True:
+
+    if bus.read_byte_data(0x20,0x10)&1 != 0:
+      GPIO.output(18, GPIO.HIGH)
+    else:
+      GPIO.output(18, GPIO.LOW)
+
     ###### Wait while the buffers are full ######
     while (head+1)%BUFFERS == tail:
       time.sleep(0.0005)
@@ -111,4 +132,6 @@ except:
 
 finally:
   print("clean up") 
-  GPIO.cleanup() # cleanup all GPIO 
+  GPIO.output(GPIO_LED, GPIO.LOW)
+  GPIO.output(24, GPIO.LOW)
+  GPIO.cleanup() # cleanup all GPIO
